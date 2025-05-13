@@ -13,7 +13,12 @@ import java.util.Map;
 
 @Service
 public class ExcelService {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public ExcelService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public ByteArrayInputStream generateExcel() throws Exception {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM employees");
