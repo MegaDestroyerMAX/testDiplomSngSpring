@@ -8,20 +8,42 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.sql.Connection;
+import java.util.ArrayList;
 
 @Service
 public class ExcelService {
-    private final JdbcTemplate jdbcTemplate;
+//    private final JdbcTemplate jdbcTemplate;
+//
+//    @Autowired
+//    public ExcelService(JdbcTemplate jdbcTemplate) {
+//        this.jdbcTemplate = jdbcTemplate;
+//    }
 
-    @Autowired
-    public ExcelService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    public ByteArrayInputStream generateExcel(Connection connection) throws Exception {
+        //List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM employees");
+        List<Map<String, Object>> rows = new ArrayList<>();
 
-    public ByteArrayInputStream generateExcel() throws Exception {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM employees");
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM employees LIMIT 100");
+             ResultSet rs = stmt.executeQuery()) {
+
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    row.put(meta.getColumnName(i), rs.getObject(i));
+                }
+                rows.add(row);
+            }
+        }
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Employees");
