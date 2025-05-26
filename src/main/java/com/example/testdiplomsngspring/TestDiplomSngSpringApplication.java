@@ -10,5 +10,4 @@ public class TestDiplomSngSpringApplication {
     public static void main(String[] args) {
         SpringApplication.run(TestDiplomSngSpringApplication.class, args);
     }
-
 }
