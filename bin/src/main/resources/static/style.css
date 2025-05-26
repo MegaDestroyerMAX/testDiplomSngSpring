@@ -1,0 +1,178 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+}
+
+header {
+    background-color: #86c6fd;
+    padding: 10px 20px;
+}
+
+main {
+    margin-top: 50px;
+}
+
+.row {
+    height: 165px;
+    justify-content: space-between;
+}
+
+.header-logo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.logo {
+    height: 60px;
+}
+
+.login {
+    background: transparent;
+    border: none;  /* Прозрачная рамка (позже появится) */
+    border-radius: 30px;            /* Скругление под форму иконки */
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.4s ease;      /* Анимация для всех свойств */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;               /* Скрываем текст за пределами кнопки */
+    width: 40px;                   /* Фиксированная ширина (как у иконки) */
+    height: 40px;
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+    margin-left: 0;
+    transition: all 0.3s ease;
+}
+
+.button-text {
+    opacity: 0;
+    width: 0;
+    transition: all 0.3s ease;
+    white-space: nowrap;           /* Запрет переноса текста */
+    margin-left: 0;                /* Отступ от иконки */
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    color: transparent;
+}
+
+.login:hover {
+    width: auto;                   /* Растягиваем кнопку по тексту */
+    padding: 20px;             /* Добавляем отступы */
+    border: none;
+    background-color: #A9D5FF;
+    /*background: rgba(52, 152, 219, 0.1); !* Лёгкий фон *!*/
+}
+
+.login:hover .icon {
+    opacity: 1;                    /* Плавное исчезновение иконки */
+    /*width: 0;                      !* Схлопываем иконку *!*/
+    margin-right: 0;
+}
+
+.login:hover .button-text {
+    opacity: 1;                    /* Плавное появление текста */
+    width: auto;
+    color: white;
+    text-align: center; /* Растягиваем текст */
+    margin-left: 8px;              /* Отступ после иконки */
+}
+
+.login:hover {
+    transform: scale(1.2);
+}
+
+.login:active {
+    transform: scale(0.98);
+}
+
+.container {
+    min-width: 1500px;
+}
+
+.left-section,
+.right-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+}
+
+.right-section {
+    justify-content: space-around;
+}
+
+.ipInput, .replicaCodeInput {
+    padding: 10px;
+    border: 1px solid #4D7396;
+    border-radius: 28px;
+    width: 275px;
+    height: 48px;
+    outline: none;
+    color: #C5C5C5;
+}
+
+input::placeholder {
+    color: #C5C5C5;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+}
+
+.btn-connect, .btn-download, .btn-accept {
+    border-radius: 28px;
+    padding: 10px;
+    width: 300px;
+    height: 48px;
+    background-color: #88C5FF;
+    border: none;
+    color: white;
+    font-weight: bold;
+    box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-accept {
+    width: 100%;
+}
+
+
+button:hover {
+    background-color: #6eb3eb;
+}
+
+.startDate, .endDate {
+    width: 269px;
+    height: 48px;
+    border: 1px solid #4D7396;
+    border-radius: 28px;
+    outline: none;
+    padding: 10px;
+    color: #C5C5C5;
+}
+
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#log {
+    margin-top: 30px;
+    padding: 10px 20px;
+    color: #333;
+    font-size: 14px;
+}

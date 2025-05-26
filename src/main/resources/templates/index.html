@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">title</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="stylesheet" th:href="@{/bootstrap/bootstrap.min.css}" href="../static/bootstrap/bootstrap.min.css">
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="header-logo">
+            <img th:src="@{/Surgutneftegaz_logo.png}" alt="Логотип" class="logo">
+            <button onclick="" class="login">
+                <img src="@{/perso.svg}" class="icon">
+                <span class="button-text">Войти</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+        <div class="row main-section">
+            <div class="col-3 left-section">
+                <input type="text" class="ipInput" placeholder="IP">
+                <input type="text" class="replicaCodeInput" placeholder="Код реплики">
+            </div>
+            <div class="col-3 buttons">
+                <button onclick="connect()" class="btn-connect">Подключиться</button>
+                <button onclick="generateTable()" class="btn-download">Сформировать таблицу</button>
+            </div>
+
+            <div class="col-5 right-section">
+                <label style="font-size: 20px">Фильтровать по дате:</label>
+                <div class="date-filter">
+                    <span>C</span>
+                    <input type="date" class="startDate">
+                    <span>По</span>
+                    <input type="date" class="endDate">
+                </div>
+                <button onclick="applyFilter()" class="btn-accept">Применить</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="log"></div>
+
+<script th:src="@{/script.js}"></script>
+</body>
+</html>
