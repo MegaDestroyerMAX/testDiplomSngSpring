@@ -11,8 +11,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 //import javax.sql.DataSource;
 
-@RestController
-@RequestMapping("/api")
+//@RestController
+//@RequestMapping("/api")
 
 public class ExcelController {
 //    private final DataSource dataSource;
@@ -22,17 +22,17 @@ public class ExcelController {
 //        this.dataSource = dataSource;
 //    }
 
-    @Value("${db.default.username}")
-    private String defaultUsername;
+//    @Value("${db.default.username}")
+//    private String defaultUsername;
+//
+//    @Value("${db.default.password}")
+//    private String defaultPassword;
 
-    @Value("${db.default.password}")
-    private String defaultPassword;
+    //private final ConnectionManager connectionManager;
 
-    private final ConnectionManager connectionManager;
-
-    public ExcelController(ConnectionManager connectionManager) {
-        this.connectionManager = connectionManager;
-    }
+//    public ExcelController(ConnectionManager connectionManager) {
+//        this.connectionManager = connectionManager;
+//    }
 
 //    @PostMapping("/connect")
 //    public ResponseEntity<String> connectToDatabase(@RequestBody ConnectionRequest request, HttpSession session) {
@@ -60,9 +60,9 @@ public class ExcelController {
 //        }
 //    }
 
-    @PostMapping("/disconnect")
-    public ResponseEntity<String> disconnect(@RequestParam String userId) {
-        connectionManager.disconnect(userId);
-        return ResponseEntity.ok("Пользователь " + userId + " отключён от базы данных");
-    }
+//    @PostMapping("/disconnect")
+//    public ResponseEntity<String> disconnect(@RequestParam String userId) {
+//        connectionManager.disconnect(userId);
+//        return ResponseEntity.ok("Пользователь " + userId + " отключён от базы данных");
+//    }
 }
