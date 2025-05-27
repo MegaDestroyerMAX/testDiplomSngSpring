@@ -30,7 +30,7 @@ public class ExcelService {
         //List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM employees");
         List<Map<String, Object>> rows = new ArrayList<>();
 
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM employees LIMIT 100");
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM parameters LIMIT 100");
              ResultSet rs = stmt.executeQuery()) {
 
             ResultSetMetaData meta = rs.getMetaData();
@@ -47,6 +47,24 @@ public class ExcelService {
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Employees");
+
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFont(headerFont);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+
+        // Стиль для обычных ячеек с границей
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+
         Row header = sheet.createRow(0);
 
         if (!rows.isEmpty()) {
@@ -54,6 +72,7 @@ public class ExcelService {
             for (String key : rows.get(0).keySet()) {
                 Cell cell = header.createCell(cellIdx++);
                 cell.setCellValue(key);
+                cell.setCellStyle(headerStyle);
             }
 
             int rowIdx = 1;
@@ -61,8 +80,15 @@ public class ExcelService {
                 Row dataRow = sheet.createRow(rowIdx++);
                 int colIdx = 0;
                 for (Object value : row.values()) {
-                    dataRow.createCell(colIdx++).setCellValue(value.toString());
+                    //dataRow.createCell(colIdx++).setCellValue(value.toString());
+                    Cell cell = dataRow.createCell(colIdx++);
+                    cell.setCellValue(value != null ? value.toString() : "");
+                    cell.setCellStyle(cellStyle);
                 }
+            }
+            // Автоподгонка ширины колонок
+            for (int i = 0; i < rows.get(0).size(); i++) {
+                sheet.autoSizeColumn(i);
             }
         }
 

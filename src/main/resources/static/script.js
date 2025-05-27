@@ -27,7 +27,12 @@ function logMessage(msg) {
 function generateTable() {
     fetch('/api/export')
         .then(response => {
-            if (!response.ok) throw new Error('Ошибка при скачивании файла');
+            if (!response.ok) {
+                return response.text().then(msg => {
+                    console.log("Ошибка ответа:", msg); // Добавляем лог
+                    throw new Error(msg);
+                });
+            }
             return response.blob();
         })
         .then(blob => {
@@ -39,9 +44,9 @@ function generateTable() {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-            //logMessage("Таблица успешно сформирована и загружена.");
+            logMessage("Таблица успешно сформирована и загружена.");
         })
-        .catch(err => alert(err.message));
+        .catch(err => alert("Ошибка: " + err.message));
 }
 
 
