@@ -52,15 +52,18 @@ function generateTable() {
 
 function connect() {
     const ip = document.querySelector('.ipInput').value;
-    const code = document.querySelector('.replicaCodeInput').value;
-    console.log("IP, CODE", ip, code)
 
-    fetch('/api/connect', {
+    fetch('/db/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip, code })
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'ip=' + encodeURIComponent(ip)
     })
-        .then(response => response.text())
-        .then(msg => logMessage(msg))
-        .catch(err => logMessage('Ошибка подключения: ' + err.message));
+        .then(response => response.text().then(text => {
+            alert(text);
+        }))
+        .catch(error => {
+            alert('Ошибка подключения: ' + error.message);
+        });
 }
