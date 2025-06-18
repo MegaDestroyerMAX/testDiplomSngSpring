@@ -28,7 +28,7 @@ public class ConnectionController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // Проверяем валидность IP (базовая проверка)
+            // Проверяем валидность IP (базовая проверка) ??
             if (ip == null || ip.trim().isEmpty()) {
                 response.put("success", false);
                 response.put("message", "IP-адрес не может быть пустым");
@@ -41,7 +41,7 @@ public class ConnectionController {
             // Создаем новое подключение (перезаписывает существующее)
             ConnectionWrapper wrapper = connectionManager.setConnection(ip);
 
-            response.put("success", true);
+            //response.put("success", true);
             response.put("message", hadActiveConnection ? "Подключение обновлено для IP: " + ip : "Новое подключение создано для IP: " + ip);
             response.put("ip", ip);
             response.put("wasActive", hadActiveConnection);
@@ -60,6 +60,7 @@ public class ConnectionController {
 
     @GetMapping("/connection/{ip}")
     public ResponseEntity<Map<String, Object>> getConnection(@PathVariable String ip) {
+        System.out.println("Получен запрос на /connection/" + ip);
         Map<String, Object> response = new HashMap<>();
 
         try {
