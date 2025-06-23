@@ -138,6 +138,7 @@ public class ConnectionManager {
 
     //Проверяет наличие активного подключения.
     public boolean hasActiveConnection(String ip) {
+        System.out.println("IP: " + ip);
         ConnectionWrapper wrapper = connections.get(ip);
         return wrapper != null && !wrapper.isExpired();
     }

@@ -1,11 +1,14 @@
 package com.example.testdiplomsngspring.controller;
 
+import com.example.testdiplomsngspring.service.ConnectionManager;
+import com.example.testdiplomsngspring.service.ConnectionWrapper;
 import com.example.testdiplomsngspring.service.ExcelExportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,10 +22,12 @@ import java.util.Map;
 public class ExcelExportController {
 
     private final ExcelExportService excelExportService;
+    private final ConnectionManager connectionManager;
 
     @Autowired
-    public ExcelExportController(ExcelExportService excelExportService) {
+    public ExcelExportController(ExcelExportService excelExportService, ConnectionManager connectionManager) {
         this.excelExportService = excelExportService;
+        this.connectionManager = connectionManager;
     }
 
     @GetMapping("/export")
@@ -32,6 +37,15 @@ public class ExcelExportController {
             // Получаем IP клиента
             String clientIp = getClientIpAddress(request);
             System.out.println("Export request from IP: " + clientIp);
+
+//            // Проверяем и обновляем соединение
+//            if (!connectionManager.hasActiveConnection(clientIp)) {
+//                System.out.println("Connection expired or not exists for IP: " + clientIp + ", reconnecting...");
+//                response.put("success", false);
+//                response.put("message", "Нет подключения к базе данных!");
+//                return ResponseEntity.badRequest().body(response);
+//                //connectionManager.getConnection(clientIp); // Это автоматически создаст новое соединение
+//            }
 
             // Генерируем Excel файл
             byte[] excelData = excelExportService.generateEmployeeExcel(clientIp);

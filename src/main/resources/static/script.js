@@ -25,14 +25,18 @@ function logMessage(msg) {
 }
 
 function generateTable() {
-    console.log("Функция generateTable вызвана");
     fetch('/api/export')
         .then(response => {
             console.log("Ответ от сервера получен:", response);
             if (!response.ok) {
                 return response.text().then(msg => {
                     console.log("Ошибка ответа:", msg); // Добавляем лог
-                    showNotification("Ошибка", msg, "error");
+                    const data = JSON.parse(msg);
+                    //console.log(data)
+                    const message = `
+                        Сообщение: ${data.message}
+                    `;
+                    showNotification("Ошибка", message, "error");
                 });
             }
             return response.blob();
@@ -42,7 +46,7 @@ function generateTable() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = "employees.xlsx";
+            a.download = "Пример Перечня.xlsx";
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -51,7 +55,7 @@ function generateTable() {
         })
         .catch(err => {
             console.log("Ошибка поймана в catch:", err.message);
-            showNotification("Ошибка", err.message, "error");
+            // showNotification("Ошибка", err.message, "error");
         });
 }
 

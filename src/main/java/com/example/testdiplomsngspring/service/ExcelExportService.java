@@ -2,6 +2,7 @@ package com.example.testdiplomsngspring.service;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -13,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,35 +54,8 @@ public class ExcelExportService {
      * @return List<Map<String, Object>> данные сотрудников
      */
     private List<Map<String, Object>> fetchEmployeeData(JdbcTemplate jdbcTemplate) {
-//        try {
-//            // Пример запроса - измените под вашу структуру БД
-//            String sql = """
-//                SELECT
-//                    id,
-//                    first_name,
-//                    last_name,
-//                    email,
-//                    phone,
-//                    department,
-//                    position,
-//                    hire_date,
-//                    salary
-//                FROM employees
-//                ORDER BY last_name, first_name
-//                """;
-//
-//            System.out.println("Executing SQL query: " + sql);
-//
-//            return jdbcTemplate.queryForList(sql);
-//
-//        } catch (DataAccessException e) {
-//            System.err.println("Ошибка при выполнении запроса к БД: " + e.getMessage());
-//
-//            // Если таблица employees не существует, попробуем альтернативный запрос
-//
-//        }
         try {
-            String alternativeSql = "SELECT * FROM parameters LIMIT 100";
+            String alternativeSql = "SELECT * FROM parameters";
             System.out.println("Trying alternative query: " + alternativeSql);
             return jdbcTemplate.queryForList(alternativeSql);
         } catch (DataAccessException e) {
@@ -88,16 +63,11 @@ public class ExcelExportService {
         }
     }
 
-    /**
-     * Создает Excel файл на основе данных
-     *
-     * @param data данные для записи в Excel
-     * @return byte[] содержимое Excel файла
-     * @throws IOException в случае ошибки создания файла
-     */
     private byte[] createExcelFile(List<Map<String, Object>> data) throws IOException {
+        Map<String, Object> response = new HashMap<>();
+        //System.out.println("data.toString() " + data.toString());
         try (XSSFWorkbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Параметры");
 
@@ -106,25 +76,16 @@ public class ExcelExportService {
             CellStyle sectionStyle = createSectionStyle(workbook);
             CellStyle dataStyle = createDataStyle(workbook);
 
-
-            // Создаем заголовки на основе первой строки данных
-            //createHeaders(sheet, data.get(0).keySet().toArray(new String[0]), headerStyle);
+            //Строим левую часть шапки
+            createLeftParameterHeaders(sheet, headerStyle, workbook);
+            //Строим правую часть шапки
+            createRightParameterHeaders(sheet, headerStyle, workbook);
 
             // Заполняем данными
-            //fillData(sheet, data, dataStyle);
-
-            // Автоматически подстраиваем ширину колонок
-            //autoSizeColumns(sheet, data.get(0).size());
-
-            // Создаем заголовки таблицы
-            createParameterHeaders(sheet, headerStyle);
-
-            // Заполняем данными (в реальном приложении здесь будет обработка данных из БД)
-            //fillParameterData(sheet, data, sectionStyle, dataStyle);
+            fillParameterData(sheet, data, sectionStyle, dataStyle, workbook);
 
             // Настраиваем ширину колонок
             setupColumnWidths(sheet);
-
 
             workbook.write(outputStream);
             System.out.println("Excel файл успешно создан. Размер: " + outputStream.size() + " байт");
@@ -139,8 +100,8 @@ public class ExcelExportService {
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        font.setBold(true);
-        font.setFontHeightInPoints((short) 10);
+        font.setBold(false);
+        font.setFontHeightInPoints((short) 11);
         style.setFont(font);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
@@ -161,65 +122,162 @@ public class ExcelExportService {
         style.setBorderTop(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
+        style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setWrapText(true);
         return style;
     }
 
-    private void createParameterHeaders(Sheet sheet, CellStyle headerStyle) {
+    private void createRightParameterHeaders(Sheet sheet, CellStyle headerStyle, Workbook workbook) {// Создаем или получаем строки для правой части шапки
+        Row headerRow1 = sheet.getRow(2) != null ? sheet.getRow(2) : sheet.createRow(2);
+        Row headerRow2 = sheet.getRow(3) != null ? sheet.getRow(3) : sheet.createRow(3);
+        Row headerRow3 = sheet.getRow(4) != null ? sheet.getRow(4) : sheet.createRow(4);
+
+        // Устанавливаем высоту строк
+        headerRow1.setHeight((short)(2 * sheet.getDefaultRowHeight()));
+        headerRow2.setHeight((short)(2 * sheet.getDefaultRowHeight()));
+        headerRow3.setHeight((short)(1 * sheet.getDefaultRowHeight()));
+
+        // Создаем стиль с переносом слов
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.cloneStyleFrom(headerStyle);
+        wrapStyle.setWrapText(true);
+
+        // Первая строка правой части заголовков (колонки 8-16)
+        String[] rightHeadersRow1 = {
+                "Описание в БД",
+                "",
+                "",
+                "",
+                "Шкаф контроллера",
+                "",
+                "",
+                "",
+                ""
+        };
+
+        // Начинаем с колонки 8 (индекс 7)
+        for (int i = 0; i < rightHeadersRow1.length; i++) {
+            Cell cell = headerRow1.createCell(i + 7);
+            cell.setCellValue(rightHeadersRow1[i]);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        // Вторая строка правой части заголовков
+        String[] rightHeadersRow2 = {
+                "Код типа объекта",
+                "Название типа объекта",
+                "Код параметра",
+                "Название параметра",
+                "Тип сигнала",
+                "Шкаф",
+                "Тип модуля",
+                "№ модуля",
+                "Канал"
+        };
+
+        for (int i = 0; i < rightHeadersRow2.length; i++) {
+            Cell cell = headerRow2.createCell(i + 7);
+            cell.setCellValue(rightHeadersRow2[i]);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        // Третья строка правой части заголовков (нумерация колонок)
+        String[] rightHeadersRow3 = {
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "15",
+                "16"
+        };
+
+        for (int i = 0; i < rightHeadersRow3.length; i++) {
+            Cell cell = headerRow3.createCell(i);
+            cell.setCellValue(rightHeadersRow3[i]);
+            cell.setCellStyle(wrapStyle);
+        }
+
+        // Объединяем ячейки в правой части
+        sheet.addMergedRegion(new CellRangeAddress(2, 2, 7, 10)); // Описание в БД (H2:K2)
+        sheet.addMergedRegion(new CellRangeAddress(2, 2, 11, 15)); // Шкаф контроллера (L2:P2)
+    }
+
+    private void createLeftParameterHeaders(Sheet sheet, CellStyle headerStyle, Workbook workbook) {
+        // Создаем строки для левой части шапки
         Row headerRow1 = sheet.createRow(2);
         Row headerRow2 = sheet.createRow(3);
         Row headerRow3 = sheet.createRow(4);
 
-        // Первая строка заголовков (объединенные ячейки)
-        createMergedHeader(sheet, headerRow1, headerStyle,
-                new String[]{"№ п/п", "Наименование параметра", "Источник / приемник сигнала", "", "Диапазон измерения*", "", "Ед. изм.", "Описание в БД", "", "", "Шкаф контроллера", "", "", "", ""},
-                new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-                new int[]{0, 0, 2, 3, 4, 5, 0, 7, 9, 10, 10, 12, 13, 14, 15});
+        // Устанавливаем высоту строк
+        headerRow1.setHeight((short)(2 * sheet.getDefaultRowHeight()));
+        headerRow2.setHeight((short)(2 * sheet.getDefaultRowHeight()));
+        headerRow3.setHeight((short)(1 * sheet.getDefaultRowHeight()));
 
-        // Вторая строка заголовков
-        createHeaderRow(headerRow2, headerStyle,
-                new String[]{"", "", "Позиция", "Наименование", "", "", "", "Код типа объекта", "Название типа объекта", "Код параметра", "Название параметра", "Тип сигнала", "Шкаф", "Тип модуля", "№ модуля", "Канал"});
+        // Создаем стиль с переносом слов
+        CellStyle wrapStyle = workbook.createCellStyle();
+        wrapStyle.cloneStyleFrom(headerStyle);
+        wrapStyle.setWrapText(true);
 
-        // Третья строка заголовков (диапазоны измерения)
-        createHeaderRow(headerRow3, headerStyle,
-                new String[]{"", "", "", "", "мин.", "макс.", "", "", "", "", "", "", "", "", "", ""});
+        // Ячейка A2-A4: "№ п/п" (объединенная вертикально)
+        Cell cellA2 = headerRow1.createCell(0);
+        cellA2.setCellValue("№\nп/п");
+        cellA2.setCellStyle(wrapStyle);
+        sheet.addMergedRegion(new CellRangeAddress(2, 3, 0, 0));
 
-        // Нумерация столбцов
-        Row columnNumbersRow = sheet.createRow(5);
-        for (int i = 0; i < 16; i++) {
-            Cell cell = columnNumbersRow.createCell(i);
-            cell.setCellValue(String.valueOf(i + 1));
-            cell.setCellStyle(headerStyle);
-        }
-    }
+        Cell cellB2 = headerRow1.createCell(1);
+        cellB2.setCellValue("Наименование\nпараметра");
+        cellB2.setCellStyle(wrapStyle);
+        sheet.addMergedRegion(new CellRangeAddress(2, 3, 1, 1));
 
-    private void createMergedHeader(Sheet sheet, Row row, CellStyle style,
-                                    String[] values, int[] cols, int[] mergePairs) {
-        for (int i = 0; i < values.length; i++) {
-            Cell cell = row.createCell(cols[i]);
-            cell.setCellValue(values[i]);
-            cell.setCellStyle(style);
-        }
+        Cell cellC1 = headerRow1.createCell(2);
+        cellC1.setCellValue("Источник / приемник\nсигнала");
+        cellC1.setCellStyle(wrapStyle);
+        sheet.addMergedRegion(new CellRangeAddress(2, 2, 2, 3));
 
-        for (int i = 0; i < mergePairs.length; i += 2) {
-            sheet.addMergedRegion(new CellRangeAddress(row.getRowNum(), row.getRowNum(), mergePairs[i], mergePairs[i+1]));
-        }
-    }
+        Cell cellC2 = headerRow2.createCell(2);
+        cellC2.setCellValue("Позиция");
+        cellC2.setCellStyle(wrapStyle);
 
-    private void createHeaderRow(Row row, CellStyle style, String[] values) {
-        for (int i = 0; i < values.length; i++) {
-            Cell cell = row.createCell(i);
-            cell.setCellValue(values[i]);
-            cell.setCellStyle(style);
-        }
+        Cell cellD2 = headerRow2.createCell(3);
+        cellD2.setCellValue("Наименование");
+        cellD2.setCellStyle(wrapStyle);
+
+        Cell cellE1 = headerRow1.createCell(4);
+        cellE1.setCellValue("Диапазон\nизмерения*");
+        cellE1.setCellStyle(wrapStyle);
+        sheet.addMergedRegion(new CellRangeAddress(2, 2, 4, 5));
+
+        Cell cellE2 = headerRow2.createCell(4);
+        cellE2.setCellValue("мин.");
+        cellE2.setCellStyle(wrapStyle);
+
+        Cell cellF2 = headerRow2.createCell(5);
+        cellF2.setCellValue("макс.");
+        cellF2.setCellStyle(wrapStyle);
+
+        Cell cellG1 = headerRow1.createCell(6);
+        cellG1.setCellValue("Ед.\nизм.");
+        cellG1.setCellStyle(wrapStyle);
+        sheet.addMergedRegion(new CellRangeAddress(2, 3, 6, 6));
     }
 
     private void setupColumnWidths(Sheet sheet) {
         // Устанавливаем специальные ширины для колонок
         sheet.setColumnWidth(0, 2000);  // № п/п
-        sheet.setColumnWidth(1, 6000);  // Наименование параметра
+        sheet.setColumnWidth(1, 4000);  // Наименование параметра
         sheet.setColumnWidth(2, 2500);  // Позиция
-        sheet.setColumnWidth(3, 5000);  // Наименование
+        sheet.setColumnWidth(3, 3300);  // Наименование
         sheet.setColumnWidth(4, 2500);  // мин.
         sheet.setColumnWidth(5, 2500);  // макс.
         sheet.setColumnWidth(6, 2000);  // Ед. изм.
@@ -237,98 +295,73 @@ public class ExcelExportService {
     private CellStyle createSectionStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        font.setBold(true);
+        font.setBold(false);
         font.setFontHeightInPoints((short) 11);
         style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
         return style;
     }
 
-    /**
-     * Создает заголовки таблицы
-     */
-    private void createHeaders(Sheet sheet, String[] headers, CellStyle headerStyle) {
-        Row headerRow = sheet.createRow(0);
+    private void fillParameterData(Sheet sheet, List<Map<String, Object>> data,
+                                   CellStyle sectionStyle, CellStyle dataStyle, Workbook workbook) {
+        int currentRow = 5; // Начинаем после заголовков
 
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            //cell.setCellValue(formatColumnName(headers[i]));
-            cell.setCellStyle(headerStyle);
-        }
+        // Создаем стиль для объединенных ячеек
+        CellStyle mergedStyle = workbook.createCellStyle();
+        mergedStyle.cloneStyleFrom(dataStyle);
+        mergedStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        mergedStyle.setAlignment(HorizontalAlignment.CENTER);
+        mergedStyle.setWrapText(true);
+
+        createSectionRow(sheet, currentRow++, sectionStyle, "Операторная");
+        fillParameterRow(sheet, currentRow, data, dataStyle, mergedStyle);
+        currentRow += data.size() * 2;
+        createSectionRow(sheet, currentRow++, sectionStyle, "Вход ДНС линия 1");
     }
 
-    /**
-     * Заполняет лист данными
-     */
-    private void fillData(Sheet sheet, List<Map<String, Object>> data, CellStyle dataStyle) {
-        for (int i = 0; i < data.size(); i++) {
-            Row row = sheet.createRow(i + 1);
-            Map<String, Object> rowData = data.get(i);
+    private void createSectionRow(Sheet sheet, int rowNum, CellStyle style, String sectionName) {
+        Row row = sheet.createRow(rowNum);
+        Cell cell = row.createCell(0);
+        cell.setCellValue(sectionName);
+        cell.setCellStyle(style);
 
-            int cellIndex = 0;
-            for (Object value : rowData.values()) {
-                Cell cell = row.createCell(cellIndex++);
-                setCellValue(cell, value);
-                cell.setCellStyle(dataStyle);
+    }
+
+    private void fillParameterRow(Sheet sheet, int startRow, List<Map<String, Object>> data,
+                                  CellStyle dataStyle, CellStyle mergedStyle) {
+        int rowNum = startRow;
+        String[] keys = {"id", "parameter_name_raw", "position", "device_name", "range_min", "range_max", "unit", "object_type_code", "object_type_name","parameter_code",
+                "parameter_description", "signal_type","cabinet","module_type", "module_number", "channel"};
+
+        for (Map<String, Object> rowData : data) {
+            // Создаем две строки для каждой записи
+            Row row1 = sheet.createRow(rowNum++);
+
+            //System.out.println("data: " + rowData);
+
+            row1.setHeight((short)(280 + sheet.getDefaultRowHeight()));
+
+            for (int i = 0; i < keys.length; i++) {
+                Object value = rowData.get(keys[i]);
+                String cellValue = (value != null) ? value.toString() : "203204";
+                //System.out.println("rowData" + rowData.get(keys[i]));
+                createAndMergeCell(sheet, row1, cellValue, dataStyle, rowNum - 2, i);
             }
+
+            RegionUtil.setBorderTop(BorderStyle.THIN, new CellRangeAddress(rowNum-2, rowNum-1, 0, 0), sheet);
+            RegionUtil.setBorderBottom(BorderStyle.THIN, new CellRangeAddress(rowNum-2, rowNum-1, 0, 0), sheet);
+            RegionUtil.setBorderLeft(BorderStyle.THIN, new CellRangeAddress(rowNum-2, rowNum-1, 0, 0), sheet);
+            RegionUtil.setBorderRight(BorderStyle.THIN, new CellRangeAddress(rowNum-2, rowNum-1, 0, 0), sheet);
         }
     }
 
-    /**
-     * Устанавливает значение ячейки в зависимости от типа данных
-     */
-    private void setCellValue(Cell cell, Object value) {
-        if (value == null) {
-            cell.setCellValue("");
-        } else if (value instanceof Number) {
-            cell.setCellValue(((Number) value).doubleValue());
-        } else if (value instanceof Boolean) {
-            cell.setCellValue((Boolean) value);
-        } else if (value instanceof java.util.Date) {
-            cell.setCellValue((java.util.Date) value);
-        } else {
-            cell.setCellValue(value.toString());
-        }
+    private void createAndMergeCell(Sheet sheet, Row row, String value, CellStyle style, int rowNum, int colNum) {
+        Cell cell = row.createCell(colNum);
+        cell.setCellValue(value);
+        cell.setCellStyle(style);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum + 1, colNum, colNum));
     }
-
-    /**
-     * Автоматически подстраивает ширину колонок
-     */
-    private void autoSizeColumns(Sheet sheet, int columnCount) {
-        for (int i = 0; i < columnCount; i++) {
-            sheet.autoSizeColumn(i);
-            // Устанавливаем минимальную ширину
-            if (sheet.getColumnWidth(i) < 2000) {
-                sheet.setColumnWidth(i, 2000);
-            }
-            // Ограничиваем максимальную ширину
-            if (sheet.getColumnWidth(i) > 8000) {
-                sheet.setColumnWidth(i, 8000);
-            }
-        }
-    }
-
-    /**
-     * Форматирует название колонки для отображения
-     */
-//    private String formatColumnName(String columnName) {
-//        // Преобразуем имена колонок в более читаемый вид
-//        return switch (columnName.toLowerCase()) {
-//            case "id" -> "ID";
-//            case "first_name" -> "Имя";
-//            case "last_name" -> "Фамилия";
-//            case "email" -> "Email";
-//            case "phone" -> "Телефон";
-//            case "department" -> "Отдел";
-//            case "position" -> "Должность";
-//            case "hire_date" -> "Дата найма";
-//            case "salary" -> "Зарплата";
-//            case "table_name" -> "Название таблицы";
-//            case "table_schema" -> "Схема";
-//            case "table_type" -> "Тип таблицы";
-//            default -> columnName.substring(0, 1).toUpperCase() +
-//                    columnName.substring(1).replace("_", " ");
-//        };
-//    }
 }
