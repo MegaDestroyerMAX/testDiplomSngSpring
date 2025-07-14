@@ -35,13 +35,13 @@ public class ExcelExportService {
      * @return byte[] содержимое Excel файла
      * @throws Exception в случае ошибки генерации
      */
-    public byte[] generateEmployeeExcel(String ip) throws Exception {
+    public byte[] generateParametersExcel(String ip) throws Exception {
         // Получаем подключение к БД
         ConnectionWrapper connectionWrapper = connectionManager.getConnection(ip);
         JdbcTemplate jdbcTemplate = connectionWrapper.getJdbcTemplate();
 
         // Выполняем запрос к БД
-        List<Map<String, Object>> employeeData = fetchEmployeeData(jdbcTemplate);
+        List<Map<String, Object>> employeeData = fetchParametersData(jdbcTemplate);
 
         // Создаем Excel файл
         return createExcelFile(employeeData);
@@ -53,7 +53,7 @@ public class ExcelExportService {
      * @param jdbcTemplate JdbcTemplate для выполнения запроса
      * @return List<Map<String, Object>> данные сотрудников
      */
-    private List<Map<String, Object>> fetchEmployeeData(JdbcTemplate jdbcTemplate) {
+    private List<Map<String, Object>> fetchParametersData(JdbcTemplate jdbcTemplate) {
         try {
             String alternativeSql = "SELECT * FROM parameters";
             System.out.println("Trying alternative query: " + alternativeSql);
@@ -318,8 +318,8 @@ public class ExcelExportService {
 
         createSectionRow(sheet, currentRow++, sectionStyle, "Операторная");
         fillParameterRow(sheet, currentRow, data, dataStyle, mergedStyle);
-        currentRow += data.size() * 2;
-        createSectionRow(sheet, currentRow++, sectionStyle, "Вход ДНС линия 1");
+        //currentRow += data.size() * 2;
+        //createSectionRow(sheet, currentRow++, sectionStyle, "Вход ДНС линия 1");
     }
 
     private void createSectionRow(Sheet sheet, int rowNum, CellStyle style, String sectionName) {
@@ -339,7 +339,7 @@ public class ExcelExportService {
         for (Map<String, Object> rowData : data) {
             // Создаем две строки для каждой записи
             Row row1 = sheet.createRow(rowNum++);
-
+            Row row2 = sheet.createRow(rowNum++);
             //System.out.println("data: " + rowData);
 
             row1.setHeight((short)(280 + sheet.getDefaultRowHeight()));

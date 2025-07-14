@@ -48,7 +48,7 @@ public class ExcelExportController {
 //            }
 
             // Генерируем Excel файл
-            byte[] excelData = excelExportService.generateEmployeeExcel(clientIp);
+            byte[] excelData = excelExportService.generateParametersExcel(clientIp);
 
             // Подготавливаем ответ
             ByteArrayResource resource = new ByteArrayResource(excelData);
